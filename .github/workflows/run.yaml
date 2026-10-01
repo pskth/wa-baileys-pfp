@@ -1,24 +1,32 @@
-name: Run Scheduled JS Script
+name: Scheduled WhatsApp Profile Picture Update
 
 on:
   schedule:
-    # Runs daily at 4:00 AM, 8:00 AM, and 7:00 PM IST
-    - cron: "30 22 * * *" # 4:00 AM IST (22:30 UTC)
-    - cron: "30 2 * * *" # 8:00 AM IST (02:30 UTC)
-    - cron: "30 13 * * *" # 7:00 PM IST (13:30 UTC)
-  workflow_dispatch:
+    # 4:00 AM IST (22:30 UTC)
+    - cron: "30 22 * * *"
+    # 8:00 AM IST (02:30 UTC)
+    - cron: "30 2 * * *"
+    # 7:00 PM IST (13:30 UTC)
+    - cron: "30 13 * * *"
+  workflow_dispatch: {}
 
 jobs:
-  run-js:
+  update-pfp:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Run JavaScript script
-        run: node scripts/script.js
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Script with Environment Secret
+        env:
+          WHATSAPP_SESSION: ${{ secrets.WHATSAPP_SESSION }}
+        run: scritps/script.js

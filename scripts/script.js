@@ -4,6 +4,9 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import qrcode from "qrcode-terminal";
 import fs from "fs";
+import path from "path";
+
+let isShuttingDown = false;
 
 async function updateDisplayPicture() {
   const imagePathEvening = "../images/evening.jpg";
@@ -29,7 +32,22 @@ async function updateDisplayPicture() {
     return;
   }
 
-  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+  const sessionDir = "auth_info_baileys";
+  if (process.env.WHATSAPP_SESSION) {
+    console.log(
+      "Found WhatsApp session secret. Reconstructing authentication files...",
+    );
+    if (!fs.existsSync(sessionDir)) {
+      fs.mkdirSync(sessionDir, { recursive: true });
+    }
+    const decryptedCreds = Buffer.from(
+      process.env.WHATSAPP_SESSION,
+      "base64",
+    ).toString("utf-8");
+    fs.writeFileSync(path.join(sessionDir, "creds.json"), decryptedCreds);
+  }
+
+  const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
   const sock = makeWASocket({
     auth: state,
@@ -47,19 +65,20 @@ async function updateDisplayPicture() {
     }
 
     if (connection === "close") {
+      if (isShuttingDown) {
+        console.log("Socket closed successfully. Exiting process.");
+        process.exit(0);
+      }
+
       const shouldReconnect =
         lastDisconnect?.error?.output?.statusCode !==
         DisconnectReason.loggedOut;
 
       if (shouldReconnect) {
-        console.log("Connection closed, trying to reconnect...");
-        if (lastDisconnect?.error?.output?.statusCode !== 200) {
-          updateDisplayPicture();
-        }
+        console.log("Connection closed unexpectedly, trying to reconnect...");
+        updateDisplayPicture();
       } else {
-        console.log(
-          'Logged out. Delete the "auth_info_baileys" folder and run again.',
-        );
+        console.log("Logged out. Delete session and run again.");
       }
     } else if (connection === "open") {
       console.log("Connected to WhatsApp! Preparing to upload picture...");
@@ -73,7 +92,8 @@ async function updateDisplayPicture() {
       } catch (error) {
         console.error("Failed to update profile picture:", error);
       } finally {
-        console.log("Disconnecting gracefully... (Session will remain paired)");
+        console.log("Disconnecting gracefully...");
+        isShuttingDown = true;
         sock.end(undefined);
       }
     }

@@ -94,7 +94,7 @@ dist
 
 # vuepress v2.x temp directory
 .temp
-
+auth_info_baileys
 # Sveltekit cache directory
 .svelte-kit/
 
