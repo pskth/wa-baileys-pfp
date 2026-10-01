@@ -1,15 +1,19 @@
 import makeWASocket, {
   useMultiFileAuthState,
   DisconnectReason,
+  Browsers,
 } from "@whiskeysockets/baileys";
 import qrcode from "qrcode-terminal";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import pino from "pino";
 
-let isShuttingDown = false;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+let isShuttingDown = false;
+const sessionDir = "auth_info_baileys";
 
 async function updateDisplayPicture() {
   const imagePathEvening = path.join(__dirname, "../images/evening.jpg");
@@ -35,7 +39,6 @@ async function updateDisplayPicture() {
     return;
   }
 
-  const sessionDir = "auth_info_baileys";
   if (process.env.WHATSAPP_SESSION) {
     console.log(
       "Found WhatsApp session secret. Reconstructing authentication files...",
@@ -55,6 +58,10 @@ async function updateDisplayPicture() {
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: false,
+    logger: pino({ level: "silent" }),
+    browser: Browsers.ubuntu("Chrome"),
+    shouldSyncHistoryMessage: () => false,
+    getMessage: async () => undefined,
   });
 
   sock.ev.on("creds.update", saveCreds);
@@ -69,7 +76,11 @@ async function updateDisplayPicture() {
 
     if (connection === "close") {
       if (isShuttingDown) {
-        console.log("Socket closed successfully. Exiting process.");
+        console.log("Socket closed successfully. Cleaning up folder...");
+        if (fs.existsSync(sessionDir)) {
+          fs.rmSync(sessionDir, { recursive: true, force: true });
+          // console.log(`Cleaned up temporary directory: "${sessionDir}"`);
+        }
         process.exit(0);
       }
 
@@ -81,13 +92,16 @@ async function updateDisplayPicture() {
         console.log("Connection closed unexpectedly, trying to reconnect...");
         updateDisplayPicture();
       } else {
-        console.log("Logged out. Delete session and run again.");
+        console.log("Logged out. Please re-authenticate your session.");
       }
     } else if (connection === "open") {
       console.log("Connected to WhatsApp! Preparing to upload picture...");
 
       try {
         const myJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
+        console.log(
+          "Uploading profile picture for your authenticated account...",
+        );
 
         await sock.updateProfilePicture(myJid, { url: imagePath });
         console.log("Success! Profile picture updated successfully.");
