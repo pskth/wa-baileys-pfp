@@ -5,13 +5,16 @@ import makeWASocket, {
 import qrcode from "qrcode-terminal";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 let isShuttingDown = false;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function updateDisplayPicture() {
-  const imagePathEvening = "../images/evening.jpg";
-  const imagePathMorning = "../images/morning.png";
-  const imagePathNight = "../images/night.png";
+  const imagePathEvening = path.join(__dirname, "../images/evening.jpg");
+  const imagePathMorning = path.join(__dirname, "../images/morning.png");
+  const imagePathNight = path.join(__dirname, "../images/night.png");
 
   const now = new Date();
   const hours = now.getHours();
