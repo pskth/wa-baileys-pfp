@@ -85,7 +85,6 @@ async function updateDisplayPicture() {
 
       try {
         const myJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
-        console.log(`Uploading profile picture for: ${myJid}`);
 
         await sock.updateProfilePicture(myJid, { url: imagePath });
         console.log("Success! Profile picture updated successfully.");
