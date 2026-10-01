@@ -6,7 +6,21 @@ import qrcode from "qrcode-terminal";
 import fs from "fs";
 
 async function updateDisplayPicture() {
-  const imagePath = "./pic.jpg";
+  const imagePathEvening = "./evening.jpg";
+  const imagePathMorning = "./morning.png";
+  const imagePathNight = "./night.jpg";
+
+  const now = new Date();
+  const hours = now.getHours();
+
+  let imagePath = null;
+  if (hours < 8 && hours > 4) {
+    imagePath = imagePathMorning;
+  } else if (hours < 19 && hours > 8) {
+    imagePath = imagePathEvening;
+  } else {
+    imagePath = imagePathNight;
+  }
 
   // 1. Verify the local image file exists
   if (!fs.existsSync(imagePath)) {
