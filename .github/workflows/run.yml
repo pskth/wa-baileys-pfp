@@ -1,0 +1,22 @@
+name: Run Scheduled JS Script
+
+on:
+  schedule:
+    # Runs daily at 00:30, 06:30, and 13:30 UTC (6:00 AM, 12:00 PM, 7:00 PM IST)
+    - cron: '30 0,6,13 * * *'
+  workflow_dispatch: 
+
+jobs:
+  run-js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run JavaScript script
+        run: node scripts/script.js
