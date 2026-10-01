@@ -1,13 +1,6 @@
 name: Scheduled WhatsApp Profile Picture Update
 
 on:
-  schedule:
-    # 4:00 AM IST (22:30 UTC)
-    - cron: "30 22 * * *"
-    # 8:00 AM IST (02:30 UTC)
-    - cron: "30 2 * * *"
-    # 7:00 PM IST (13:30 UTC)
-    - cron: "30 13 * * *"
   workflow_dispatch: {}
 
 jobs:
