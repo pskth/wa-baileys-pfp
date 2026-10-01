@@ -21,7 +21,9 @@ async function updateDisplayPicture() {
   const imagePathNight = path.join(__dirname, "../images/night.png");
 
   const now = new Date();
-  const hours = now.getHours();
+  const options = { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: false };
+  const formatter = new Intl.DateTimeFormat("en-US", options);
+  const hours = parseInt(formatter.format(now), 10);
 
   let imagePath = null;
   if (hours < 8 && hours > 4) {
